@@ -9,7 +9,6 @@
     "ejs": "*",
     "express": "*",
     "express-fileupload": "*",
-    "formidable": "latest",
     "mongodb": "*"
   },
   "engine": "node >= 0.10.0",

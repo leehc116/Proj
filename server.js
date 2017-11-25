@@ -1,7 +1,7 @@
 var express = require('express');
 var session = require('cookie-session');
 var bodyParser = require('body-parser');
-//var fileUpload = require('express-fileupload');
+var fileUpload = require('express-fileupload');
 var app = express();
 
 
@@ -16,7 +16,7 @@ var SECRETKEY1 = 'I want to pass COMPS381F';
 var SECRETKEY2 = 'Keep this to yourself';
 
 app.set('view engine','ejs');
-//app.use(fileUpload());
+app.use(fileUpload());
 app.use(session({
   name: 'session',
   keys: [SECRETKEY1,SECRETKEY2]
@@ -112,7 +112,27 @@ app.post('/create',function(req,res,next){
 	if (!req.session.authenticated) {
 		res.redirect('/');
 	}else{
-		/*if(req.files){
+		var fs = require('fs');
+		new_r = {};
+		new_r['restaurant_id'] = (req.body.restaurant_id) ? req.body.restaurant_id : null;
+		new_r['name'] = (req.body.name) ? req.body.name : "";
+		new_r['borough'] = (req.body.borough) ? req.body.borough : "";
+		new_r['cuisine'] = (req.body.cuisine) ? req.body.cuisine : "";
+		var address = {};
+		address['street'] = (req.body.street) ? req.body.street : "";
+		address['building'] = (req.body.building) ? req.body.building : "";
+		address['zipcode'] = (req.body.zipcode) ? req.body.zipcode : "";
+		var coord = [];
+		(req.body.lon) ? coord.push(req.body.lon) : coord.push("");
+		(req.body.lat) ? coord.push(req.body.lat) : coord.push("");
+		address['coord'] = coord;
+		new_r['address'] = address;
+		//var grades = [];
+		//if(fields.score) grades.push({"user":req.session.username,"score":fields.score});
+		new_r['grades'] = [];
+		new_r['owner'] = req.session.username;
+		//if(fields.photo){
+		if(req.files.photo){
 			var d = new Date();
 			let photo = req.files.photo;// Use the mv() method to place the file somewhere on your server
 			photo.mv('./images/('+req.session.username+d.getTime()+')'+photo.name, function(err) {
@@ -120,59 +140,28 @@ app.post('/create',function(req,res,next){
 					return res.status(500).send(err);
 				console.log('File uploaded!');
 			});
-		}*/
-		var formidable = require('formidable');
-		var fs = require('fs');
-		var form = new formidable.IncomingForm();
-		form.parse(req, function (err,fields,files) {
-			new_r = {};
-			new_r['restaurant_id'] = (fields.restaurant_id) ? fields.restaurant_id : null;
-			new_r['name'] = (fields.name) ? fields.name : "";
-			new_r['borough'] = (fields.borough) ? fields.borough : "";
-			new_r['cuisine'] = (fields.cuisine) ? fields.cuisine : "";
-			var address = {};
-			address['street'] = (fields.street) ? fields.street : "";
-			address['building'] = (fields.building) ? fields.building : "";
-			address['zipcode'] = (fields.zipcode) ? fields.zipcode : "";
-			var coord = [];
-			(fields.lon) ? coord.push(fields.lon) : coord.push("");
-			(fields.lat) ? coord.push(fields.lat) : coord.push("");
-			address['coord'] = coord;
-			new_r['address'] = address;
-			//var grades = [];
-			//if(fields.score) grades.push({"user":req.session.username,"score":fields.score});
-			new_r['grades'] = [];
-			new_r['owner'] = req.session.username;
-			//if(fields.photo){
-				var filename = files.photo.path;
-				var mimetype = files.photo.type;
-				fs.readFile(filename, function(err,data) {
-					var buffer = new Buffer(data).toString('base64');
-					if(buffer){
-						new_r['mimetype'] = mimetype;
-						new_r['photo'] = buffer;
-						MongoClient.connect(mongourl, function(err, db) {
-							assert.equal(null, err);
-							insertDocument(db,new_r,function() {
-								console.log('insert done!');
-								db.close();
-								res.redirect('/');
-							});
-						});
-					}else{
-						new_r['mimetype'] = "";
-						new_r['photo'] = "";
-						MongoClient.connect(mongourl, function(err, db) {
-							assert.equal(null, err);
-							insertDocument(db,new_r,function() {
-								console.log('insert done!');
-								db.close();
-								res.redirect('/');
-							});
-						});
-					}
+			new_r['mimetype'] = req.files.photo.mimetype;
+			new_r['photo'] = req.files.photo.data.toString('base64');
+			MongoClient.connect(mongourl, function(err, db) {
+				assert.equal(null, err);
+				insertDocument(db,new_r,function() {
+					console.log('insert done!');
+					db.close();
+					res.redirect('/');
 				});
-		});
+			});
+		}else{
+			new_r['mimetype'] = "";
+			new_r['photo'] = "";
+			MongoClient.connect(mongourl, function(err, db) {
+				assert.equal(null, err);
+				insertDocument(db,new_r,function() {
+					console.log('insert done!');
+					db.close();
+					res.redirect('/');
+				});
+			});
+		}
 	}
 });
 
@@ -328,7 +317,30 @@ app.post('/change',function(req,res,next){
 	if (!req.session.authenticated) {
 		res.redirect('/');
 	}else{
-		/*if(req.files){
+		var fs = require('fs');
+		new_r = {};
+		var criteria = {};
+		id = req.body._id;
+		criteria['_id'] = ObjectId(id);
+		new_r['restaurant_id'] = (req.body.restaurant_id) ? req.body.restaurant_id : null;
+		new_r['name'] = (req.body.name) ? req.body.name : "";
+		new_r['borough'] = (req.body.borough) ? req.body.borough : "";
+		new_r['cuisine'] = (req.body.cuisine) ? req.body.cuisine : "";
+		var address = {};
+		address['street'] = (req.body.street) ? req.body.street : "";
+		address['building'] = (req.body.building) ? req.body.building : "";
+		address['zipcode'] = (req.body.zipcode) ? req.body.zipcode : "";
+		var coord = [];
+		(req.body.lon) ? coord.push(req.body.lon) : coord.push("");
+		(req.body.lat) ? coord.push(req.body.lat) : coord.push("");
+		address['coord'] = coord;
+		new_r['address'] = address;
+		//var grades = [];
+		//if(fields.score) grades.push({"user":req.session.username,"score":fields.score});
+		new_r['grades'] = [];
+		new_r['owner'] = req.session.username;
+		//if(fields.photo){
+		if(req.files.photo){
 			var d = new Date();
 			let photo = req.files.photo;// Use the mv() method to place the file somewhere on your server
 			photo.mv('./images/('+req.session.username+d.getTime()+')'+photo.name, function(err) {
@@ -336,62 +348,28 @@ app.post('/change',function(req,res,next){
 					return res.status(500).send(err);
 				console.log('File uploaded!');
 			});
-		}*/
-		var formidable = require('formidable');
-		var fs = require('fs');
-		var form = new formidable.IncomingForm();
-		form.parse(req, function (err,fields,files) {
-			new_r = {};
-			var criteria = {};
-			id = fields._id;
-			criteria['_id'] = ObjectId(id);
-			new_r['restaurant_id'] = (fields.restaurant_id) ? fields.restaurant_id : null;
-			new_r['name'] = (fields.name) ? fields.name : "";
-			new_r['borough'] = (fields.borough) ? fields.borough : "";
-			new_r['cuisine'] = (fields.cuisine) ? fields.cuisine : "";
-			var address = {};
-			address['street'] = (fields.street) ? fields.street : "";
-			address['building'] = (fields.building) ? fields.building : "";
-			address['zipcode'] = (fields.zipcode) ? fields.zipcode : "";
-			var coord = [];
-			(fields.lon) ? coord.push(fields.lon) : coord.push("");
-			(fields.lat) ? coord.push(fields.lat) : coord.push("");
-			address['coord'] = coord;
-			new_r['address'] = address;
-			//var grades = [];
-			//if(fields.score) grades.push({"user":req.session.username,"score":fields.score});
-			//new_r['grades'] = [];
-			//new_r['owner'] = req.session.username;
-			//if(fields.photo){
-				var filename = files.photo.path;
-				var mimetype = files.photo.type;
-				fs.readFile(filename, function(err,data) {
-					var buffer = new Buffer(data).toString('base64');
-					if(buffer){
-						new_r['mimetype'] = mimetype;
-						new_r['photo'] = buffer;
-						MongoClient.connect(mongourl, function(err, db) {
-							assert.equal(null, err);
-							updateDocument(db,criteria,new_r,function() {
-								console.log('update done!');
-								db.close();
-								res.redirect('/display?_id='+id);
-							});
-						});
-					}else{
-						//new_r['mimetype'] = "";
-						//new_r['photo'] = "";
-						MongoClient.connect(mongourl, function(err, db) {
-							assert.equal(null, err);
-							updateDocument(db,criteria,new_r,function() {
-								console.log('update done!');
-								db.close();
-								res.redirect('/display?_id='+id);
-							});
-						});
-					}
+			new_r['mimetype'] = req.files.photo.mimetype;
+			new_r['photo'] = req.files.photo.data.toString('base64');
+			MongoClient.connect(mongourl, function(err, db) {
+				assert.equal(null, err);
+				updateDocument(db,criteria,new_r,function() {
+					console.log('update done!');
+					db.close();
+					res.redirect('/display?_id='+id);
 				});
-		});
+			});
+		}else{
+			//new_r['mimetype'] = "";
+			//new_r['photo'] = "";
+			MongoClient.connect(mongourl, function(err, db) {
+				assert.equal(null, err);
+				updateDocument(db,criteria,new_r,function() {
+					console.log('update done!');
+					db.close();
+					res.redirect('/display?_id='+id);
+				});
+			});
+		}
 	}
 });
 
