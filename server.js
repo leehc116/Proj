@@ -182,16 +182,16 @@ app.get('/display',function(req,res,next){
 	}else{
 		var queryAsObject = req.query;
 		//console.log(queryAsObject._id);
-		/*if(queryAsObject._id){
-			if(queryAsObject._id.length == 12 || queryAsObject._id.length == 24){*/
+		if(queryAsObject._id){
+			if(queryAsObject._id.length == 12 || queryAsObject._id.length == 24){
 				displayRestaurant(res,queryAsObject._id);
-			/*}else{
+			}else{
 				res.status(500);
 				res.render('error');
 			}
 		}else{
 			res.redirect('/');
-		}*/
+		}
 	}
 });
 
