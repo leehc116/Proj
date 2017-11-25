@@ -1,6 +1,4 @@
-<!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -43,13 +41,14 @@
   <div class="jumbotron text-center container=fluid">
     <h1>Restaurants</h1>
     
-      <p>User:<%= userid %></p>
-      
+    <p>User:<%= userid %></p>
+    
     <p>Showing<% if(restaurant_name.length > 0){ %> <%= restaurant_name.length %> <% }else{ %>
       0
       <% } %>
       documents 
-    (criteria: {})</p>
+    (criteria:{<% for(i in key){%>"<%=key[i]%>":"<%=values[i]%>"<% if(i!=key.length-1){%>,<%}%><% } %>})
+  </p>
   </div>
   <div class="container-fluid">
     <div class="row">
@@ -60,7 +59,7 @@
         <button class="btn btn-default">Create New Restaurant</button>
       </a>
     </div>
-    <% if(restaurant_name.length > 0){%>
+    
     <div class="row">
       <table class="table table-striped table-bordered table-hover table-scroll">
         <thead>
@@ -68,16 +67,20 @@
             <th>Name</th>
           </tr>
         </thead>
+        
         <tbody>
+          <% if(restaurant_name.length > 0){%>
             <% for(i in restaurant_name){ %>
             <tr>
               <td class=><a href=/display?_id=<%= restaurant_name[i]._id%>><%= restaurant_name[i].name%></a></td>
             </tr>
             <% } %>
+          <% } %>
         </tbody>
+          
       </table>
     </div>
-    <% } %>
+    
   </div>
 </body>
 </html>

@@ -1,18 +1,19 @@
 {
-    "name": "server",
-    "description": "NodeJS Session",
-    "author": "Leehc",
-    "version": "0.0.1",
-    "dependencies": {
-        "express": "*",
-        "ejs": "*",
-        "body-parser": "*",
-        "cookie-session": "*",
-        "mongodb": "*",
-        "formidable": "latest"
-    },
-    "engine": "node >= 0.10.0",
-    "scripts": {
-        "start": "node server"
-    }
+  "name": "server",
+  "description": "NodeJS Session",
+  "author": "Leehc",
+  "version": "0.0.1",
+  "dependencies": {
+    "body-parser": "*",
+    "cookie-session": "*",
+    "ejs": "*",
+    "express": "*",
+    "express-fileupload": "*",
+    "formidable": "latest",
+    "mongodb": "*"
+  },
+  "engine": "node >= 0.10.0",
+  "scripts": {
+    "start": "node server"
+  }
 }
