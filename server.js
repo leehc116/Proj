@@ -133,13 +133,13 @@ app.post('/create',function(req,res,next){
 		new_r['owner'] = req.session.username;
 		//if(fields.photo){
 		if(req.files.photo){
-			var d = new Date();
+			/*var d = new Date();
 			let photo = req.files.photo;// Use the mv() method to place the file somewhere on your server
 			photo.mv('./images/('+req.session.username+d.getTime()+')'+photo.name, function(err) {
 				if (err)
 					return res.status(500).send(err);
 				console.log('File uploaded!');
-			});
+			});*/
 			new_r['mimetype'] = req.files.photo.mimetype;
 			new_r['photo'] = req.files.photo.data.toString('base64');
 			MongoClient.connect(mongourl, function(err, db) {
@@ -341,13 +341,13 @@ app.post('/change',function(req,res,next){
 		new_r['owner'] = req.session.username;
 		//if(fields.photo){
 		if(req.files.photo){
-			var d = new Date();
+			/*var d = new Date();
 			let photo = req.files.photo;// Use the mv() method to place the file somewhere on your server
 			photo.mv('./images/('+req.session.username+d.getTime()+')'+photo.name, function(err) {
 				if (err)
 					return res.status(500).send(err);
 				console.log('File uploaded!');
-			});
+			});*/
 			new_r['mimetype'] = req.files.photo.mimetype;
 			new_r['photo'] = req.files.photo.data.toString('base64');
 			MongoClient.connect(mongourl, function(err, db) {
@@ -370,6 +370,59 @@ app.post('/change',function(req,res,next){
 				});
 			});
 		}
+	}
+});
+
+app.get('/api/restaurant/read/:c/:v',function(req,res,next){
+	if (!req.session.authenticated) {
+		res.redirect('/');
+	}else{
+		var criteria = {};
+		if(req.params.c && req.params.v){
+			criteria[req.params.c] = req.params.v;
+		}
+		//console.log(criteria);
+		MongoClient.connect(mongourl, function(err, db) {
+			assert.equal(null, err);
+			findR(db,criteria,function(restaurants) {
+				db.close();
+				console.log('Disconnected MongoDB\n');
+				if (restaurants.length == 0) {
+					res.writeHead(200, {"Content-Type": "application/json"});
+					var json = JSON.stringify({});
+					res.end(json);
+				} else {
+					res.writeHead(200, {"Content-Type": "application/json"});
+					var json = JSON.stringify(restaurants);
+					res.end(json);
+				}
+			});		
+		});
+	}
+});
+
+app.get('/api/restaurant/read',function(req,res,next){
+	if (!req.session.authenticated) {
+		res.redirect('/');
+	}else{
+		var criteria = {};
+		//console.log(criteria);
+		MongoClient.connect(mongourl, function(err, db) {
+			assert.equal(null, err);
+			findR(db,criteria,function(restaurants) {
+				db.close();
+				console.log('Disconnected MongoDB\n');
+				if (restaurants.length == 0) {
+					res.writeHead(200, {"Content-Type": "application/json"});
+					var json = JSON.stringify({});
+					res.end(json);
+				} else {
+					res.writeHead(200, {"Content-Type": "application/json"});
+					var json = JSON.stringify(restaurants);
+					res.end(json);
+				}
+			});		
+		});
 	}
 });
 
