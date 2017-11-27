@@ -505,7 +505,7 @@ function insertDocument2(db,r,callback) {
 function insertDocument(db,r,callback) {
 	db.collection('restaurants').insertOne(r,function(err,result) {
 		assert.equal(err,null);
-		console.log("Insert was successful!");
+		console.log("Insert Document was successful!");
 		//console.log(JSON.stringify(result));
 		callback(result);
 	});
