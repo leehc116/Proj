@@ -475,7 +475,7 @@ app.post('/api/restaurant/create',function(req,res,next){
 		}else{
 		MongoClient.connect(mongourl, function(err, db) {
 			assert.equal(null, err);
-			insertDocument(db,new_r,function(id) {
+			insertDocument2(db,new_r,function(id) {
 				console.log('insert done!');
 				db.close();
 				var json = {status: 'ok' , _id:id};
@@ -488,7 +488,7 @@ app.post('/api/restaurant/create',function(req,res,next){
 	//}
 });
 
-function insertDocument(db,r,callback) {
+function insertDocument2(db,r,callback) {
 	db.collection('restaurants').insertOne(r,function(err,result) {
 		assert.equal(err,null);
 		if(err){
@@ -499,6 +499,15 @@ function insertDocument(db,r,callback) {
 		console.log("Insert was successful!");
 		//console.log(result.ops[0]._id);
 		callback(result.ops[0]._id);
+	});
+}
+
+function insertDocument(db,r,callback) {
+	db.collection('restaurants').insertOne(r,function(err,result) {
+		assert.equal(err,null);
+		console.log("Insert was successful!");
+		//console.log(JSON.stringify(result));
+		callback(result);
 	});
 }
 
