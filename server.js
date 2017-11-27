@@ -426,12 +426,79 @@ app.get('/api/restaurant/read',function(req,res,next){
 	}
 });
 
+app.get('/newrest',function(req,res,next){
+	if (!req.session.authenticated) {
+		res.redirect('/');
+	}else{
+		res.status(200);
+		res.render('newrest');
+	}
+});
+
+app.post('/api/restaurant/create',function(req,res,next){
+	/*if (!req.session.authenticated) {
+		res.redirect('/');
+	}else{*/
+		var fs = require('fs');
+		new_r = {};
+		new_r['restaurant_id'] = (req.body.restaurant_id) ? req.body.restaurant_id : null;
+		new_r['name'] = (req.body.name) ? req.body.name : "";
+		new_r['borough'] = (req.body.borough) ? req.body.borough : "";
+		new_r['cuisine'] = (req.body.cuisine) ? req.body.cuisine : "";
+		var address = {};
+		address['street'] = (req.body.street) ? req.body.street : "";
+		address['building'] = (req.body.building) ? req.body.building : "";
+		address['zipcode'] = (req.body.zipcode) ? req.body.zipcode : "";
+		var coord = [];
+		(req.body.lon) ? coord.push(req.body.lon) : coord.push("");
+		(req.body.lat) ? coord.push(req.body.lat) : coord.push("");
+		address['coord'] = coord;
+		new_r['address'] = address;
+		//var grades = [];
+		//if(fields.score) grades.push({"user":req.session.username,"score":fields.score});
+		new_r['grades'] = [];
+		if(req.session.username){
+			new_r['owner'] = req.session.username;
+		}else if(req.body.owner){
+			new_r['owner'] = req.body.owner;
+		}else{
+			new_r['owner'] = "";
+		}
+		new_r['mimetype'] = "";
+		new_r['photo'] = "";
+		//console.log(new_r['owner']);
+		//console.log(new_r['name']);
+		if(new_r['name'] == "" || new_r['owner'] == ""){
+			res.writeHead(200, {"Content-Type": "application/json"});
+			var json = JSON.stringify({status: 'failed'});
+			res.end(json);
+		}else{
+		MongoClient.connect(mongourl, function(err, db) {
+			assert.equal(null, err);
+			insertDocument(db,new_r,function(id) {
+				console.log('insert done!');
+				db.close();
+				var json = {status: 'ok' , _id:id};
+				res.writeHead(200, {"Content-Type": "application/json"});
+				var jsonstr = JSON.stringify(json);
+				res.end(jsonstr);
+			});
+		});
+		}
+	//}
+});
+
 function insertDocument(db,r,callback) {
 	db.collection('restaurants').insertOne(r,function(err,result) {
 		assert.equal(err,null);
+		if(err){
+			res.writeHead(200, {"Content-Type": "application/json"});
+			var json = JSON.stringify({status: 'failed'});
+			res.end(json);
+		}
 		console.log("Insert was successful!");
-		//console.log(JSON.stringify(result));
-		callback(result);
+		//console.log(result.ops[0]._id);
+		callback(result.ops[0]._id);
 	});
 }
 
