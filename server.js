@@ -26,7 +26,6 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 app.get('/',function(req,res,next) {
-	console.log(req.session);
 	if (!req.session.authenticated) {
 		res.status(200);
 		res.render('login');
@@ -40,7 +39,6 @@ app.get('/login',function(req,res,next) {
 });
 
 app.post('/login',function(req,res,next) {
-	//req.session = null;
 	MongoClient.connect(mongourl, function(err, db) {
 		assert.equal(err,null);
 		console.log('Connected to MongoDB\n');
@@ -51,7 +49,6 @@ app.post('/login',function(req,res,next) {
 				console.log('Not found!');
 				res.redirect('/');
 			} else {
-				//console.log(req.body);
 				for (var i=0; i<users.length; i++) {
 					if (users[i].userid == req.body.id &&
 		    	users[i].password == req.body.password) {
@@ -76,23 +73,48 @@ app.get('/read',function(req,res,next) {
 	}else{
 		MongoClient.connect(mongourl, function(err, db) {
 			assert.equal(err,null);
-			var criteria = req.query;
-			var keys = [];
-      var values = [];
-      for (key in criteria){
-      	keys.push(key);
-        values.push(criteria[key]);
-      }
+			var c = req.query;
+			var criteria = {};
+
+			for (key in c) {
+				switch(key){
+				case "_id":
+					criteria['_id'] = ObjectId(c[key]);
+					break;
+				case "street":
+					criteria["address."+key] = c[key];
+					break;
+				case "building":
+					criteria["address."+key] = c[key];
+					break;
+				case "zipcode":
+					criteria["address."+key] = c[key];
+					break;
+				case "coord":
+					criteria["address."+key] = c[key];
+					break;
+				case "user":
+					criteria["grades."+key] = c[key];
+					break;
+				case "score":
+					criteria["grades."+key] = c[key];
+					break;
+				default:
+					criteria[key] = c[key];
+					break;
+				}
+			}
+
+			console.log(criteria);
 			findRestaurants(db,criteria,function(restaurants) {
 				db.close();
 				console.log('Disconnected MongoDB\n');
 				if (restaurants.length == 0) {
 					res.status(200);
-					res.render('read',{userid:req.session.username, restaurant_name:restaurants, key:keys, values:values});
+					res.render('read',{userid:req.session.username, restaurant_name:restaurants, criteria:JSON.stringify(criteria)});
 				} else {
-					//console.log(restaurants);
 					res.status(200);
-					res.render('read',{userid:req.session.username, restaurant_name:restaurants, key:keys, values:values});
+					res.render('read',{userid:req.session.username, restaurant_name:restaurants, criteria:JSON.stringify(criteria)});
 				}
 			}); 
 		});
@@ -131,15 +153,7 @@ app.post('/create',function(req,res,next){
 		//if(fields.score) grades.push({"user":req.session.username,"score":fields.score});
 		new_r['grades'] = [];
 		new_r['owner'] = req.session.username;
-		//if(fields.photo){
 		if(req.files.photo){
-			/*var d = new Date();
-			let photo = req.files.photo;// Use the mv() method to place the file somewhere on your server
-			photo.mv('./images/('+req.session.username+d.getTime()+')'+photo.name, function(err) {
-				if (err)
-					return res.status(500).send(err);
-				console.log('File uploaded!');
-			});*/
 			new_r['mimetype'] = req.files.photo.mimetype;
 			new_r['photo'] = req.files.photo.data.toString('base64');
 			MongoClient.connect(mongourl, function(err, db) {
@@ -170,7 +184,6 @@ app.get('/display',function(req,res,next){
 		res.redirect('/');
 	}else{
 		var queryAsObject = req.query;
-		//console.log(queryAsObject._id);
 		if(queryAsObject._id){
 			if(queryAsObject._id.length == 12 || queryAsObject._id.length == 24){
 				displayRestaurant(res,queryAsObject._id);
@@ -214,13 +227,11 @@ app.post('/rate',function(req,res,next){
 		update['user'] = req.session.username;
 		update['score'] = req.body.score;
 		push['grades'] = update;
-		console.log(criteria);
 		MongoClient.connect(mongourl, function(err, db) {
 			assert.equal(null, err);
 			findR(db,criteria,function(restaurants) {
 				db.close();
 				console.log('Disconnected MongoDB\n');
-				//console.log(restaurants[0].grades);
 				if (restaurants[0].grades) {
 					var check = false;
 					var grade = restaurants[0].grades;
@@ -235,7 +246,7 @@ app.post('/rate',function(req,res,next){
 							assert.equal(null, err);
 							updateRate(db,id,push, function() {
 								db.close();
-								console.log('update completed!');
+								console.log('completed!');
 								res.redirect('/display?_id='+req.body._id);
 							});
 						});
@@ -248,7 +259,7 @@ app.post('/rate',function(req,res,next){
 						assert.equal(null, err);
 						updateRate(db,id,push, function() {
 							db.close();
-							console.log('update completed!');
+							console.log('completed!');
 							res.redirect('/display?_id='+req.body._id);
 						});
 					});
@@ -275,7 +286,7 @@ app.get('/remove',function(req,res,next){
 						assert.equal(null, err);
 						removeRes(db,criteria, function() {
 							db.close();
-							console.log('update completed!');
+							console.log('completed!');
 							res.status(200);
 							res.render('remove');
 						});
@@ -339,15 +350,7 @@ app.post('/change',function(req,res,next){
 		//if(fields.score) grades.push({"user":req.session.username,"score":fields.score});
 		new_r['grades'] = [];
 		new_r['owner'] = req.session.username;
-		//if(fields.photo){
 		if(req.files.photo){
-			/*var d = new Date();
-			let photo = req.files.photo;// Use the mv() method to place the file somewhere on your server
-			photo.mv('./images/('+req.session.username+d.getTime()+')'+photo.name, function(err) {
-				if (err)
-					return res.status(500).send(err);
-				console.log('File uploaded!');
-			});*/
 			new_r['mimetype'] = req.files.photo.mimetype;
 			new_r['photo'] = req.files.photo.data.toString('base64');
 			MongoClient.connect(mongourl, function(err, db) {
@@ -359,8 +362,6 @@ app.post('/change',function(req,res,next){
 				});
 			});
 		}else{
-			//new_r['mimetype'] = "";
-			//new_r['photo'] = "";
 			MongoClient.connect(mongourl, function(err, db) {
 				assert.equal(null, err);
 				updateDocument(db,criteria,new_r,function() {
@@ -381,7 +382,6 @@ app.get('/api/restaurant/read/:c/:v',function(req,res,next){
 		if(req.params.c && req.params.v){
 			criteria[req.params.c] = req.params.v;
 		}
-		//console.log(criteria);
 		MongoClient.connect(mongourl, function(err, db) {
 			assert.equal(null, err);
 			findR(db,criteria,function(restaurants) {
@@ -406,7 +406,6 @@ app.get('/api/restaurant/read',function(req,res,next){
 		res.redirect('/');
 	}else{
 		var criteria = {};
-		//console.log(criteria);
 		MongoClient.connect(mongourl, function(err, db) {
 			assert.equal(null, err);
 			findR(db,criteria,function(restaurants) {
@@ -466,8 +465,6 @@ app.post('/api/restaurant/create',function(req,res,next){
 		}
 		new_r['mimetype'] = "";
 		new_r['photo'] = "";
-		//console.log(new_r['owner']);
-		//console.log(new_r['name']);
 		if(new_r['name'] == "" || new_r['owner'] == ""){
 			res.writeHead(200, {"Content-Type": "application/json"});
 			var json = JSON.stringify({status: 'failed'});
@@ -497,7 +494,6 @@ function insertDocument2(db,r,callback) {
 			res.end(json);
 		}
 		console.log("Insert was successful!");
-		//console.log(result.ops[0]._id);
 		callback(result.ops[0]._id);
 	});
 }
@@ -506,7 +502,6 @@ function insertDocument(db,r,callback) {
 	db.collection('restaurants').insertOne(r,function(err,result) {
 		assert.equal(err,null);
 		console.log("Insert Document was successful!");
-		//console.log(JSON.stringify(result));
 		callback(result);
 	});
 }
@@ -551,7 +546,6 @@ function displayRestaurant(res,id) {
 					res.status(500);
 					res.render('error');
 				} else {
-					//console.log(doc);
 					res.status(200);
 					res.render('display',{restaurant:doc});
 				}
@@ -577,7 +571,6 @@ var updateRate = function(db,id,update, callback) {
 		{_id: ObjectId(id)},
 		{ $push: update },
 	function(err, results) {
-		//console.log(results);
 		callback();
 	});
 };
@@ -586,7 +579,6 @@ var removeRes = function(db,criteria, callback) {
 	db.collection('restaurants').deleteOne(
 		criteria,
 		function(err, results) {
-			//console.log(results);
 			callback();
 		}
 	);
@@ -596,7 +588,6 @@ function updateDocument(db,criteria,r,callback) {
 	db.collection('restaurants').updateOne(criteria,{$set:r},function(err,result) {
 		assert.equal(err,null);
 		console.log("update  was successful!");
-		//console.log(JSON.stringify(result));
 		callback(result);
 	});
 }
