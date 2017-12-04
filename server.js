@@ -465,7 +465,7 @@ app.post('/api/restaurant/create',function(req,res,next){
 		}
 		new_r['mimetype'] = "";
 		new_r['photo'] = "";
-		if(new_r['name'] == "" || new_r['owner'] == ""){
+		if(new_r['name'] == ""){
 			res.writeHead(200, {"Content-Type": "application/json"});
 			var json = JSON.stringify({status: 'failed'});
 			res.end(json);
