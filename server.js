@@ -375,9 +375,9 @@ app.post('/change',function(req,res,next){
 });
 
 app.get('/api/restaurant/read/:c/:v',function(req,res,next){
-	if (!req.session.authenticated) {
+	/*if (!req.session.authenticated) {
 		res.redirect('/');
-	}else{
+	}else{*/
 		var criteria = {};
 		if(req.params.c && req.params.v){
 			criteria[req.params.c] = req.params.v;
@@ -398,13 +398,13 @@ app.get('/api/restaurant/read/:c/:v',function(req,res,next){
 				}
 			});		
 		});
-	}
+	//}
 });
 
 app.get('/api/restaurant/read',function(req,res,next){
-	if (!req.session.authenticated) {
+	/*if (!req.session.authenticated) {
 		res.redirect('/');
-	}else{
+	}else{*/
 		var criteria = {};
 		MongoClient.connect(mongourl, function(err, db) {
 			assert.equal(null, err);
@@ -422,7 +422,7 @@ app.get('/api/restaurant/read',function(req,res,next){
 				}
 			});		
 		});
-	}
+	//}
 });
 
 app.get('/newrest',function(req,res,next){
@@ -465,7 +465,7 @@ app.post('/api/restaurant/create',function(req,res,next){
 		}
 		new_r['mimetype'] = "";
 		new_r['photo'] = "";
-		if(new_r['name'] == ""){
+		if(new_r['name'] == "" || new_r['owner']==""){
 			res.writeHead(200, {"Content-Type": "application/json"});
 			var json = JSON.stringify({status: 'failed'});
 			res.end(json);
